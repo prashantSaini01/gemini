@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <link rel="stylesheet" href="static/style.css">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="main-div">
+        <!-- Menu Toggle Button -->
+        <div class="menuToggle">
+            <i class='bx bx-help-circle'></i>
+        </div>
+
+        <!-- Chat Container -->
+        <div class="container">
+            <!-- Top Part -->
+            <div class="top-part">
+                <div class="agent-details">
+                    <!-- Adding alt text for image -->
+                    <img src="static/logo.png" alt="Agent Avatar">
+                    <div class="agent-text">
+                        <h3>ShopAI chatbot</h3>
+                        <p>Agent <span>(Online)</span></p>
+                    </div>
+                </div>
+                <i class="bx bx-x"></i>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="chart-section">
+                <!-- Chatbot interaction goes here -->
+                <!-- Left part is where the chatbot's messages will be displayed -->
+                
+            </div>
+
+            <!-- Bottom Section (User Input) -->
+            <div class="bottom-section">
+              <i id="micButton" class='bx bxs-microphone'></i>
+                <textarea id="user-input" cols="30" rows="10" placeholder="Send a message."></textarea>
+                <i class='bx bxs-send' onclick="sendMessage()"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript files -->
+    <script src="static/chat.js"></script>
+    <script src="static/menu.js"></script>
+    
+    
+</body>
+</html>

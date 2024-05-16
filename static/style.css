@@ -1,0 +1,267 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Open Sans', sans-serif;
+    color: aliceblue;
+}
+
+body {
+    background-color: #0f0f20;
+}
+
+.main-div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    position: relative;
+}
+
+.menuToggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    height: 50px;
+    width: 50px;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 10px #0000;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.menuToggle i {
+    font-size: 30px;
+    color: #0f0f20;
+}
+
+.container {
+    height: 30px;
+    width: 30px;
+    border: 3px solid rgba(255, 255, 255, .5);
+    border-radius: 20px;
+    background: white;
+    overflow: hidden;
+    position: absolute;
+    bottom: 30px;
+    z-index: 1;
+    transition: .5s, height .5s, width .5s;
+    transition-timing-function: cubic-bezier(0.075, .82, .165, 1);
+}
+
+.menuToggle.active ~ .container {
+    height: 550px;
+    width: 390px;
+    z-index: 3;
+    transition-delay: 1s, 0.5s, 0.5s;
+    transform: translateY(-100px);
+}
+
+.container::before {
+    content: "";
+    position: absolute;
+    background: #fff;
+    height: 100px;
+    width: 100px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    transition: .5s;
+}
+
+.menuToggle.active ~ .container::before {
+    transition-delay: .5s;
+}
+
+.container .top-part {
+    height: 100px;
+    background: #0f0f20;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.container .top-part i {
+    font-size: 40px;
+    cursor: pointer;
+}
+
+.top-part .agent-details {
+    display: flex;
+    align-items: center;
+}
+
+.container .top-part .agent-details img {
+    height: 70px;
+    border: 2px solid white;
+    border-radius: 50%;
+    background: white;
+}
+
+.top-part .agent-text {
+    margin-left: 10px;
+}
+
+.agent-text h3 {
+    font-size: 15px;
+}
+
+.agent-text p {
+    font-size: 11px;
+}
+
+.agent-text span {
+    color: greenyellow;
+}
+
+.chart-section {
+    position: relative;
+    padding: 0 20px;
+    max-height: 350px; /* Limiting maximum height */
+    overflow-y: auto; /* Adding vertical scroll */
+}
+
+.left-part {
+    margin: 10px 0; /* Adjusted margin */
+    max-width: 260px;
+}
+
+.agent-chart {
+    display: flex;
+    align-items: center;
+}
+
+.left-part img {
+    height: 50px;
+    background: #0f0f20;
+    border-radius: 50%;
+}
+
+.left-part p {
+    color: #555;
+    font-weight: 400;
+    font-size: 14px;
+    background: rgba(0, 0, 0, .1);
+    border-radius: 10px;
+    padding: 10px;
+    margin-left: 10px;
+}
+
+.chart-section .right-part {
+    margin: 10px 0; /* Adjusted margin */
+    text-align: right;
+    max-width: 260px;
+    float: right;
+    font-size: 14px;
+}
+
+.chart-section .right-part p {
+    color: #fff;
+    font-size: 13px;
+    background: #0f0f20;
+    padding: 8px 24px;
+    border-radius: 10px;
+}
+
+.chart-section .right-part span {
+    color: #555;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.bottom-section {
+    position: absolute;
+    bottom: 10px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    border-top: 2px solid rgba(0, 0, 0, .1);
+    padding: 10px;
+}
+
+.bottom-section i {
+    color: #0f0f20;
+    font-size: 30px;
+}
+
+.bottom-section textarea {
+    height: 40px;
+    width: 80%;
+    color: #0f0f20;
+    padding: 0 5px;
+    resize: none;
+    outline: none;
+    border: none;
+    text-transform: capitalize;
+    overflow-y: hidden;
+}
+
+/* Message Alignment */
+.message {
+    margin-bottom: 10px; /* Adjusted margin */
+}
+
+.message p {
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.message.left p {
+    background-color: #0f0f20;
+    color: white;
+    text-align: left;
+}
+/* CSS for user message alignment */
+.message.right {
+    text-align: right;
+    text-wrap: break-word;
+    margin-top: 10px;
+}
+.message.right p {
+    display: inline-block;
+    background-color: #4CAF50;
+    color: white;
+    text-align: left;
+}
+
+.message span {
+    font-size: 11px;
+    color: #555;
+}
+/* Add this CSS for bot response */
+.message.left .agent-chart {
+    display: flex;
+    align-items: center;
+}
+
+.message.left .agent-chart img {
+    height: 50px;
+    background: #0f0f20;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.message.left .agent-chart p {
+    color: #555;
+    font-weight: 400;
+    font-size: 14px;
+    background: rgba(0, 0,0,.1);
+    border-radius: 10px;
+    padding: 10px;
+    margin-left: 10px;
+}
+
+.message.left span {
+    color: #555;
+    font-size: 11px;
+    font-weight: 500;
+    margin-left: 60px; /* Adjusted margin */
+}
