@@ -253,7 +253,7 @@ body {
     color: #555;
     font-weight: 400;
     font-size: 14px;
-    background: rgba(0, 0,0,.1);
+    background: rgba(1, 83, 116, 0.1);
     border-radius: 10px;
     padding: 10px;
     margin-left: 10px;
@@ -264,4 +264,67 @@ body {
     font-size: 11px;
     font-weight: 500;
     margin-left: 60px; /* Adjusted margin */
+}
+/* style.css */
+
+/* Style the outermost div */
+.message-final {
+    background-color: #02879e;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+/* Style the h3 header */
+.message-final h3 {
+    color: #333;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+/* Style the ul element to remove default padding and margin */
+.message-final ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Style each product item */
+.message-final li {
+    margin-bottom: 20px;
+}
+
+/* Style the h4 element for product name */
+.message-final h4 {
+    color: #001730;
+    font-size: 1.25em;
+    margin: 0;
+}
+
+/* Style the anchor tag and image for product link and image */
+.message-final a img {
+    max-width: 200px;
+    display: block;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Style the paragraph and the inner anchor tag for the product URL */
+.message-final p {
+    margin: 5px 0;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.message-final p a {
+    color: #cde1f7;
+    text-decoration: none;
+    overflow-wrap: break-word;;
+}
+
+.message-final p a:hover {
+    text-decoration: underline;
 }
