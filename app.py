@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import shopify
 import os
 import re
@@ -13,13 +13,7 @@ app = Flask(__name__)
 
 os.environ['GOOGLE_API_KEY'] = "AIzaSyD8MuvEtPT6C7SwRjMxDJK8wEhfAj6zTk0"
 
-shop_url = 'https://shopingai.myshopify.com/'
-admin_api_key = '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'
-api_version = "2023-10"  # Specify a valid API version
 
-# Create and activate a new session
-session = shopify.Session(shop_url, api_version, admin_api_key)
-shopify.ShopifyResource.activate_session(session)
 
 safety_settings = [
   {
@@ -76,7 +70,41 @@ index = VectorStoreIndex.from_documents(documents)
 
 query_engine = index.as_query_engine(text_qa_template=llm_prompt, similarity_top_k=15)
 
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/get_bot_response', methods=['POST'])
+def get_bot_response():
+    # Get the user query from the request
+    user_query = request.json.get('query')
+
+    if user_query is None:
+        return jsonify({'bot_response': 'No query provided.'}), 400
+
+    # Use the user query to get product information
+    try:
+        product_info = query_product_info(user_query)
+        # Generate a bot response based on the product information
+        bot_response = generate_bot_response(product_info)
+        # Return the bot response
+        return jsonify({'bot_response': bot_response})
+    except Exception as e:
+        return jsonify({'bot_response': f'Error: {str(e)}'}), 500
+
 def query_product_info(prompt):
+
+    # shop_url = 'https://shopingai.myshopify.com/'
+    # admin_api_key = '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'
+    # api_version = "2023-10"  # Specify a valid API version
+    shop_url = 'https://boatai.myshopify.com/'
+    admin_api_key = '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'
+    api_version= "2023-10"
+
+    # Create and activate a new session
+    session = shopify.Session(shop_url, api_version, admin_api_key)
+    shopify.ShopifyResource.activate_session(session)
     response = query_engine.query(prompt)
     response = response.response
     print("Resonse:\n", response)
@@ -93,7 +121,7 @@ def query_product_info(prompt):
     for title in product_titles:
         print("Title", title)
         # Find products with the given title
-        products = shopify.Product.find(title_like=title)
+        products = shopify.Product.find(title=title)
 
         # If products are found, store their images
         if products:
@@ -112,9 +140,34 @@ def query_product_info(prompt):
 
     return product_images
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+
+def generate_bot_response(product_info):
+    # Generate a response based on the product information
+    response = ""
+
+    # Check if product information is available
+    if product_info:
+        response += "<div class = 'message-final'>"
+        response += "<h3>Here are some products I found:</h3>"
+        response += "<ul style='list-style-type: none; padding: 0;'>"
+
+        # Iterate through the product information and format the response
+        for product, info in product_info.items():
+            product_url = info.get('product_url', 'Not available')
+            image_src = info.get('image_src', 'Not available')
+
+            response += "<li style='margin-bottom: 20px;'>"
+            response += f"<h4>{product}</h4>"
+            response += f"<a href='{product_url}' target='_blank'><img src='{image_src}' alt='{product}' style='max-width: 200px;'></a>"
+            response += f"<p><strong>Product URL:</strong> <a href='{product_url}' target='_blank'>{product_url}</a></p>"
+            response += "</li>"
+        
+        response += "</ul>"
+        response += "</div>"
+    else:
+        response += "I couldn't find any products related to your query."
+
+    return response
 
 
 if __name__ == "__main__":
