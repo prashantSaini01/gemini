@@ -11,23 +11,40 @@ function sendMessage(message) {
     updateChat(trimmedMessage, 'user');
 
     // Clear the message input
-    messageInput.textContent = '';
+    messageInput.value = '';
 
-    // Simulate bot response
-    simulateBotResponse();
+    // Simulate bot response with the user message
+    simulateBotResponse(trimmedMessage);
 }
+
 
 // Function to simulate bot response
-function simulateBotResponse() {
+function simulateBotResponse(userQuery) {
     // Simulate delay to mimic server response time
     setTimeout(() => {
-        // Generate a simple bot response (you can replace this with actual bot interaction)
-        var botMessage = "This is a sample response from the chatbot.";
+        // Send the user query to the server
+        fetch('/get_bot_response', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query: userQuery }), // Pass the user query
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Extract the bot response from the data
+            var botResponse = data.bot_response;
 
-        // Display bot response on the left side with bot's avatar
-        updateChat(botMessage, 'bot');
+            // Display bot response on the left side with bot's avatar
+            updateChat(botResponse, 'bot');
+        })
+        .catch(error => {
+            console.error('Error fetching bot response:', error);
+        });
     }, 1000); // Adjust delay time as needed
 }
+
+
 
 // Function to update chat with the received response
 function updateChat(message, sender) {
@@ -67,7 +84,8 @@ function updateChat(message, sender) {
 // Event listener for the send button
 document.querySelector('.bxs-send').addEventListener('click', function() {
     var messageInput = document.getElementById('user-input');
-    sendMessage(messageInput.textContent);
+    sendMessage(messageInput.value); // Use .value instead of .textContent
+    messageInput.value = ''; // Clear the input after sending
 });
 
 // Event listener for the textarea to send message on Enter key press
@@ -75,9 +93,11 @@ document.getElementById('user-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault(); // Prevent default behavior (inserting newline)
         var messageInput = document.getElementById('user-input');
-        sendMessage(messageInput.textContent); // Send the message
+        sendMessage(messageInput.value); // Use .value instead of .textContent
+        messageInput.value = ''; // Clear the input after sending
     }
 });
+
 
 // Function to initialize SpeechRecognition
 function initSpeechRecognition() {
