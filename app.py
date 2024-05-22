@@ -8,68 +8,73 @@ from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core.callbacks import CallbackManager
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index.core import PromptTemplate
-
+import markdown
+import bleach
+from bs4 import BeautifulSoup
 app = Flask(__name__)
 
 os.environ['GOOGLE_API_KEY'] = "AIzaSyD8MuvEtPT6C7SwRjMxDJK8wEhfAj6zTk0"
+# Set environment variable for Google API key
+os.environ['GOOGLE_API_KEY'] = os.getenv('GOOGLE_API_KEY')
 
-
-
+# Safety settings for LLM
 safety_settings = [
-  {
-    "category": "HARM_CATEGORY_HARASSMENT",
-    "threshold": "BLOCK_NONE"
-  },
-  {
-    "category": "HARM_CATEGORY_HATE_SPEECH",
-    "threshold": "BLOCK_NONE"
-  },
-  {
-    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-    "threshold": "BLOCK_NONE"
-  },
-  {
-    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-    "threshold": "BLOCK_NONE"
-  },
+    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
 ]
+
+# Generation configuration for LLM
 generation_config = {
-  "temperature": 0.4,
-  "top_p": 0.7,
-  "top_k": 50,
-  "max_output_tokens": 8192,
+    "temperature": 1.0,
+    "top_p": 0.9,
+    "top_k": 50,
+    "max_output_tokens": 1024,
 }
 
-llm = Gemini(model_types="gemini-1.5-Pro", generation_config = generation_config,
-                  safety_settings=safety_settings, device = 'cuda', device_map='cuda')
-Settings.llm=llm
+# Initialize LLM with generation configuration and safety settings
+llm = Gemini(
+    model_types="gemini-1.5-Pro",
+    generation_config=generation_config,
+    safety_settings=safety_settings,
+    device='cuda',
+    device_map='cuda'
+)
+Settings.llm = llm
 
+# Embedding model
 model_name = "nomic-ai/nomic-embed-text-v1"
 embed_model = HuggingFaceEmbedding(model_name=model_name, trust_remote_code=True, device='cuda')
 Settings.embed_model = embed_model
 
+# Prompt template for LLM
 template = (
     "I have provided context information below.\n"
     "---------------------\n"
     "{context_str}"
     "\n---------------------\n"
-    "**You are conversational AI.**\n"
-    "*Response Format*: Bullet points with key-value pairs and product name as `Title`.\n"
-    '''**Sample Response Format*: 
+    "*You are a conversational AI.*\n"
+    "\n---------------------\n"
+    "You are required to respond for 2 types of user input.\n"
+    "1. General 2. Product related"
+    "For Product related, use the following response format for product-related queries:\n"
+    "Response Format: Bullet points with key-value pairs and product name as Title.\n"
+    '''*Sample Response Format: 
         - Title: The Institutes
         - Author: CALVIN JOHN
         - Category: Religious Studies.\n'''
-    "Use only the provided context, no external knowledge allowed. {query_str}\n"
+    "Use only the provided context, no external knowledge allowed. {query_str}\n\n"
 )
-
 llm_prompt = PromptTemplate(template)
 
 # Load documents and build index
 documents = SimpleDirectoryReader("data").load_data()
 index = VectorStoreIndex.from_documents(documents)
 
-query_engine = index.as_query_engine(text_qa_template=llm_prompt, similarity_top_k=15)
-
+# Create query and chat engines
+#query_engine = index.as_query_engine(text_qa_template=llm_prompt, similarity_top_k=15)
+chat_engine = index.as_chat_engine(text_qa_template=llm_prompt, chat_mode="condense_question",verbose=True)
 
 @app.route('/')
 def index():
@@ -77,98 +82,149 @@ def index():
 
 @app.route('/get_bot_response', methods=['POST'])
 def get_bot_response():
-    # Get the user query from the request
     user_query = request.json.get('query')
+    mode = request.json.get('mode')
+    if not user_query or not mode:
+        return jsonify({'bot_response': 'Invalid input.'}), 400
 
-    if user_query is None:
-        return jsonify({'bot_response': 'No query provided.'}), 400
-
-    # Use the user query to get product information
     try:
-        product_info = query_product_info(user_query)
-        # Generate a bot response based on the product information
-        bot_response = generate_bot_response(product_info)
-        # Return the bot response
-        return jsonify({'bot_response': bot_response})
+        product_info, chat_response = query_product_info(user_query)
+        formatted_chat_response = format_chat_response(chat_response)
+        if mode == 'recommendation':
+            bot_response = generate_bot_response(product_info, formatted_chat_response)
+        elif mode =='conversation':
+            bot_response = generate_bot_response(product_info=None, chat_response=formatted_chat_response)
+        return jsonify({'bot_response': bot_response})         
+
     except Exception as e:
         return jsonify({'bot_response': f'Error: {str(e)}'}), 500
 
-def query_product_info(prompt):
+def create_shopify_session(shop_url, api_version, admin_api_key):
+    try:
+        session = shopify.Session(shop_url, api_version, admin_api_key)
+        shopify.ShopifyResource.activate_session(session)
+        return session
+    except Exception as e:
+        print("Error activating Shopify session:", e)
+        return None
 
-    # shop_url = 'https://shopingai.myshopify.com/'
-    # admin_api_key = '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'
-    # api_version = "2023-10"  # Specify a valid API version
-    shop_url = 'https://boatai.myshopify.com/'
-    admin_api_key = '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'
-    api_version= "2023-10"
+def deactivate_shopify_session():
+    try:
+        shopify.ShopifyResource.clear_session()
+    except Exception as e:
+        print("Error deactivating Shopify session:", e)
 
-    # Create and activate a new session
-    session = shopify.Session(shop_url, api_version, admin_api_key)
-    shopify.ShopifyResource.activate_session(session)
-    response = query_engine.query(prompt)
-    response = response.response
-    print("Resonse:\n", response)
+def get_chat_response(prompt):
+    # Convert the prompt to lowercase once and use it for comparison
+    lower_prompt = prompt.lower()
 
-    # Regular expression pattern to match titles
+    # Check if the prompt is "hi" or "hello"
+    if lower_prompt not in {"hi", "hello", "restart","reset"}:
+        try:
+            response = chat_engine.chat(prompt).response
+            print("Response:\n", response)
+            return response
+        except Exception as e:
+            print("Error getting response from chat engine:", e)
+            return ""
+    else:
+        chat_engine.reset()
+        return "By typing Hi or Hello, you just cleared the chat-history. Now you can start a fresh chat."
+
+
+def extract_product_titles(response):
     pattern = r'Title: (.*)'
-    # Find all matches of the pattern
-    product_titles = re.findall(pattern, response)
+    return re.findall(pattern, response)
 
-    # Dictionary to store images with titles
-    product_images = {}
-
-    # Fetch images for each title
-    for title in product_titles:
-        print("Title", title)
-        # Find products with the given title
+def find_product_images(shop_url, title):
+    try:
         products = shopify.Product.find(title=title)
-
-        # If products are found, store their images
         if products:
             for product in products:
-                # Accessing the first image's src for each product
                 image_src = product.images[0].src if product.images else None
                 product_url = f"{shop_url}/products/{product.handle}"
                 if image_src:
-                    # Store the image URL with the title
-                    product_images[title] = {"product_url": product_url, "image_src": image_src}
-                    break  # Only store the first image for each title
+                    return {"product_url": product_url, "image_src": image_src}
                 else:
                     print("No image found for product:", product.title)
         else:
             print("No products found with the title:", title)
+    except Exception as e:
+        print(f"Error finding products with title {title}:", e)
+    return None
 
-    return product_images
+def query_product_info(prompt):
+    shop_url = 'https://boatai.myshopify.com/'
+    admin_api_key = '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'
+    api_version = "2023-10"
 
+    session = create_shopify_session(shop_url, api_version, admin_api_key)
+    if not session:
+        return {}, ""
 
-def generate_bot_response(product_info):
-    # Generate a response based on the product information
+    response = get_chat_response(prompt)
+    if not response:
+        deactivate_shopify_session()
+        return {}, ""
+
+    product_titles = extract_product_titles(response)
+    product_images = {}
+
+    for title in product_titles:
+        print("Title:", title)
+        product_image_info = find_product_images(shop_url, title)
+        if product_image_info:
+            product_images[title] = product_image_info
+
+    deactivate_shopify_session()
+    return product_images, response
+
+def generate_bot_response(product_info, chat_response):
     response = ""
 
-    # Check if product information is available
     if product_info:
-        response += "<div class = 'message-final'>"
-        response += "<h3>Here are some products I found:</h3>"
-        response += "<ul style='list-style-type: none; padding: 0;'>"
+        response += "<div class='message-final'>"
+        #response += f"<h3>{chat_response}</h3>"
+        response += "<div class='product-container' style='display: flex; overflow-x: auto; white-space: nowrap;'>"
 
-        # Iterate through the product information and format the response
         for product, info in product_info.items():
             product_url = info.get('product_url', 'Not available')
             image_src = info.get('image_src', 'Not available')
 
-            response += "<li style='margin-bottom: 20px;'>"
-            response += f"<h4>{product}</h4>"
+            response += "<div class='product-item' style='flex: 0 0 auto; margin-right: 20px;'>"
+            response += f"<h4><a href='{product_url}' target='_blank'>{product}</a></h4>"
             response += f"<a href='{product_url}' target='_blank'><img src='{image_src}' alt='{product}' style='max-width: 200px;'></a>"
-            response += f"<p><strong>Product URL:</strong> <a href='{product_url}' target='_blank'>{product_url}</a></p>"
-            response += "</li>"
-        
-        response += "</ul>"
+            response += "</div>"
+
+        response += "</div>"
         response += "</div>"
     else:
-        response += "I couldn't find any products related to your query."
+        response += f"<p>{chat_response}</p>"
 
     return response
 
+def format_chat_response(chat_response):
+    # Remove Markdown characters and format for HTML
+    html_response = markdown.markdown(chat_response, extensions=['extra', 'sane_lists'])
+    # Remove <p> tags by parsing with BeautifulSoup and reconstructing the HTML without <p> tags
+    soup = BeautifulSoup(html_response, "html.parser")
+    # Remove <p> tags and keep their contents
+    for p_tag in soup.find_all('p'):
+        p_tag.unwrap()  # Removes the <p> tag but keeps its content
+    # Get the cleaned HTML
+    clean_html_response = str(soup)
+    # Configuration for bleach
+    allowed_tags = [
+        'em', 'strong', 'ul', 'li'
+    ]
+    # Sanitize the HTML with custom configuration
+    clean_html_response = bleach.clean(
+        clean_html_response,
+        tags=allowed_tags,
+        attributes={},  # No special attributes needed
+    )
+
+    return clean_html_response
 
 if __name__ == "__main__":
     app.run(debug=True)
