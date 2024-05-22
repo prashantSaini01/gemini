@@ -1,0 +1,55 @@
+**About this Project**
+
+This project is a conversational AI-based web application that integrates with Shopify to provide product recommendations and information based on user queries. It leverages advanced natural language processing (NLP) techniques and state-of-the-art machine learning models to deliver a seamless user experience. Below are the key components and functionalities of the project:
+
+Key Components
+
+Flask Framework:
+
+The project uses Flask, a lightweight web framework, to handle web server operations, including routing and rendering HTML templates.
+
+Shopify Integration:
+
+The application integrates with Shopify to fetch product details and images. This integration allows the chatbot to provide accurate product information and recommendations based on the user’s input.
+
+LLM (Large Language Model):
+
+The project utilizes the Gemini model from the llama_index library for generating conversational responses. This model is configured with specific safety settings and generation parameters to ensure appropriate and relevant outputs.
+Embeddings:
+
+The project employs HuggingFace’s embedding models to convert text into high-dimensional vectors, enabling effective similarity searches and semantic understanding of user queries.
+
+VectorStoreIndex:
+
+Documents are indexed using VectorStoreIndex to facilitate quick and efficient retrieval of relevant information during chat interactions.
+Prompt Templates:
+
+Custom prompt templates guide the LLM to generate responses in a predefined format, ensuring consistency and relevance in the chatbot’s replies.
+Main Functionalities
+
+Greeting Detection:
+
+The application can detect common greetings such as "hi", "hello", "hey", etc., and respond with a welcoming message, prompting the user to ask product-related queries.
+Product Query Handling:
+
+When a user asks about products, the chatbot queries the internal index and Shopify to retrieve relevant product information, including titles and images.
+Chat and Query Engines:
+
+Two main engines, the chat engine and the query engine, process user inputs. The chat engine handles conversational aspects, while the query engine deals with product-related queries.
+
+Error Handling:
+
+The application includes robust error handling mechanisms to manage issues with Shopify sessions, LLM responses, and other potential errors, ensuring a smooth user experience.
+HTML Response Formatting:
+
+The chatbot’s responses are formatted in HTML to be displayed appropriately on the web interface, including handling Markdown to HTML conversion for structured display.
+Environment Configuration
+
+Google API Key:
+
+The project uses a Google API key for various integrations, set as an environment variable for security.
+Safety Settings and Generation Configurations:
+
+Specific safety settings ensure the chatbot does not generate harmful or inappropriate content. Generation parameters like temperature, top-p, and max tokens control the creativity and length of responses.
+Usage
+Users can interact with the chatbot via a web interface to receive product recommendations and information. The chatbot can handle both casual greetings and detailed product inquiries, providing a user-friendly and informative experience.
