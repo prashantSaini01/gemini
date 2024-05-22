@@ -1,9 +1,10 @@
 // Function to send a message
-function sendMessage(message) {
+function sendMessage() {
     var messageInput = document.getElementById('user-input');
+    var selectedMode = document.querySelector('input[name="chat_mode"]:checked').value; // Get selected chat mode
 
     // Trim whitespace from the message
-    var trimmedMessage = message.trim();
+    var trimmedMessage = messageInput.value.trim();
 
     if (trimmedMessage === '') return; // If message is empty, do nothing
 
@@ -14,28 +15,27 @@ function sendMessage(message) {
     messageInput.value = '';
 
     // Simulate bot response with the user message
-    simulateBotResponse(trimmedMessage);
+    simulateBotResponse(trimmedMessage, selectedMode);
 }
 
-
 // Function to simulate bot response
-function simulateBotResponse(userQuery) {
+function simulateBotResponse(userQuery, mode) {
     // Simulate delay to mimic server response time
     setTimeout(() => {
-        // Send the user query to the server
+        // Send the user query and mode to the server
         fetch('/get_bot_response', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ query: userQuery }), // Pass the user query
+            body: JSON.stringify({ query: userQuery, mode: mode }), // Pass the user query and mode
         })
         .then(response => response.json())
         .then(data => {
             // Extract the bot response from the data
             var botResponse = data.bot_response;
 
-            // Display bot response on the left side with bot's avatar
+            // Display bot response on the left side
             updateChat(botResponse, 'bot');
         })
         .catch(error => {
@@ -44,10 +44,11 @@ function simulateBotResponse(userQuery) {
     }, 1000); // Adjust delay time as needed
 }
 
-
-
 // Function to update chat with the received response
 function updateChat(message, sender) {
+    // Only proceed if message is not empty
+    if (message.trim() === '') return;
+
     // Create a new chat bubble
     var bubble = document.createElement('div');
     bubble.classList.add('message');
@@ -59,19 +60,7 @@ function updateChat(message, sender) {
     bubble.classList.add(bubbleClass);
 
     // Add the message to the chat bubble
-    if (sender === 'user') {
-        bubble.innerHTML = `
-            <div class="message-content">
-                <p>${message}</p>
-            </div>
-        `;
-    } else if (sender === 'bot') {
-        bubble.innerHTML = `
-            <div class="message-content">
-                <p>${message}</p>
-            </div>
-        `;
-    }
+    bubble.innerHTML = `<div class="message-content"><p>${message}</p></div>`;
 
     // Append the chat bubble to the chat section
     var chatSection = document.querySelector('.chart-section');
@@ -83,21 +72,16 @@ function updateChat(message, sender) {
 
 // Event listener for the send button
 document.querySelector('.bxs-send').addEventListener('click', function() {
-    var messageInput = document.getElementById('user-input');
-    sendMessage(messageInput.value); // Use .value instead of .textContent
-    messageInput.value = ''; // Clear the input after sending
+    sendMessage();
 });
 
 // Event listener for the textarea to send message on Enter key press
 document.getElementById('user-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault(); // Prevent default behavior (inserting newline)
-        var messageInput = document.getElementById('user-input');
-        sendMessage(messageInput.value); // Use .value instead of .textContent
-        messageInput.value = ''; // Clear the input after sending
+        sendMessage();
     }
 });
-
 
 // Function to initialize SpeechRecognition
 function initSpeechRecognition() {
