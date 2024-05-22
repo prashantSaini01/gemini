@@ -44,15 +44,15 @@ body {
 .container {
     height: 30px;
     width: 30px;
-    border: 3px solid rgba(255, 255, 255, .5);
+    border: 3px solid rgba(255, 255, 255, 0.5);
     border-radius: 20px;
     background: white;
     overflow: hidden;
     position: absolute;
     bottom: 30px;
     z-index: 1;
-    transition: .5s, height .5s, width .5s;
-    transition-timing-function: cubic-bezier(0.075, .82, .165, 1);
+    transition: 0.5s, height 0.5s, width 0.5s;
+    transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .menuToggle.active ~ .container {
@@ -61,23 +61,6 @@ body {
     z-index: 3;
     transition-delay: 1s, 0.5s, 0.5s;
     transform: translateY(-100px);
-}
-
-.container::before {
-    content: "";
-    position: absolute;
-    background: #fff;
-    height: 100px;
-    width: 100px;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    transition: .5s;
-}
-
-.menuToggle.active ~ .container::before {
-    transition-delay: .5s;
 }
 
 .container .top-part {
@@ -144,16 +127,6 @@ body {
     border-radius: 50%;
 }
 
-.left-part p {
-    color: #555;
-    font-weight: 400;
-    font-size: 14px;
-    background: rgba(0, 0, 0, .1);
-    border-radius: 10px;
-    padding: 10px;
-    margin-left: 10px;
-}
-
 .chart-section .right-part {
     margin: 10px 0; /* Adjusted margin */
     text-align: right;
@@ -183,7 +156,7 @@ body {
     justify-content: space-around;
     align-items: center;
     width: 100%;
-    border-top: 2px solid rgba(0, 0, 0, .1);
+    border-top: 2px solid rgba(0, 0, 0, 0.1);
     padding: 10px;
 }
 
@@ -206,28 +179,40 @@ body {
 
 /* Message Alignment */
 .message {
-    margin-bottom: 10px; /* Adjusted margin */
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    width: 100%;
 }
-
 .message p {
     padding: 10px;
     border-radius: 10px;
+    max-width: 70%;
+    
 }
 
-.message.left p {
-    background-color: #0f0f20;
-    color: white;
-    text-align: left;
-}
-/* CSS for user message alignment */
 .message.right {
+    justify-content: flex-end;
+}
+
+.message.left {
     text-align: right;
     text-wrap: break-word;
     margin-top: 10px;
+
 }
+
 .message.right p {
     display: inline-block;
     background-color: #4CAF50;
+    color: white;
+    text-align: left;
+}
+
+.message.left p {
+    display: inline-block;
+    background-color: #047ea3;
     color: white;
     text-align: left;
 }
@@ -236,27 +221,11 @@ body {
     font-size: 11px;
     color: #555;
 }
+
 /* Add this CSS for bot response */
 .message.left .agent-chart {
     display: flex;
     align-items: center;
-}
-
-.message.left .agent-chart img {
-    height: 50px;
-    background: #0f0f20;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-.message.left .agent-chart p {
-    color: #555;
-    font-weight: 400;
-    font-size: 14px;
-    background: rgba(1, 83, 116, 0.1);
-    border-radius: 10px;
-    padding: 10px;
-    margin-left: 10px;
 }
 
 .message.left span {
@@ -265,66 +234,143 @@ body {
     font-weight: 500;
     margin-left: 60px; /* Adjusted margin */
 }
-/* style.css */
+.message-content {
+    max-width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 10px;
+    position: relative;
+}
 
+.message.right .message-content {
+    background-color: #4CAF50;
+    color: white;
+    text-align: left;
+}
+
+.message.left .message-content {
+    background-color: #047ea3;
+    color: white;
+    text-align: left;
+}
+
+.message.right .message-content::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: -10px;
+    border-width: 10px;
+    border-style: solid;
+    border-color: transparent transparent transparent #4CAF50;
+}
+
+.message.left .message-content::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -10px;
+    border-width: 10px;
+    border-style: solid;
+    border-color: transparent #047ea3 transparent transparent;
+}
 /* Style the outermost div */
 .message-final {
-    background-color: #02879e;
+    background-color: #f9f9f9;
     padding: 20px;
     border-radius: 8px;
     border: 1px solid #ddd;
-    max-width: 600px;
+    max-width: 100%;
     margin: 20px auto;
+    overflow: hidden; /* Ensure the horizontal scroll container is fully within the parent */
 }
 
 /* Style the h3 header */
 .message-final h3 {
     color: #333;
-    font-size: 1.5em;
+    font-size: 0.75em;
     margin-bottom: 10px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Style the ul element to remove default padding and margin */
-.message-final ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
+h3 {
+    color: white;
+    font-size: 1.0em; /* Increase font size */
+    margin-bottom: 15px; /* Increase bottom margin */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Add subtle text shadow */
+}
+
+/* Style the container to hold product items in a horizontal row */
+.product-container {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 10px; /* Add some padding to the bottom for better spacing */
 }
 
 /* Style each product item */
-.message-final li {
-    margin-bottom: 20px;
+.product-item {
+    flex: 0 0 auto;
+    margin-right: 20px;
 }
 
 /* Style the h4 element for product name */
-.message-final h4 {
-    color: #001730;
+.product-item h4 {
+    color: #007bff;
     font-size: 1.25em;
-    margin: 0;
+    margin: 0 0 10px 0;
+    white-space: normal; /* Allow text to wrap within the container */
+}
+
+.product-item h4 a {
+    color: #007bff;
+    text-decoration: none; /* Remove underline from the link */
+}
+
+.product-item h4 a:hover {
+    text-decoration: underline; /* Add underline on hover */
 }
 
 /* Style the anchor tag and image for product link and image */
-.message-final a img {
+.product-item a img {
     max-width: 200px;
     display: block;
-    margin: 10px 0;
+    margin: 0 auto;
     border: 1px solid #ddd;
     border-radius: 4px;
 }
 
-/* Style the paragraph and the inner anchor tag for the product URL */
-.message-final p {
-    margin: 5px 0;
-    font-size: 0.9em;
-    color: #555;
+.product-item a {
+    text-decoration: none; /* Remove underline from the image link */
 }
 
-.message-final p a {
-    color: #cde1f7;
-    text-decoration: none;
-    overflow-wrap: break-word;;
+.product-item a:hover img {
+    border-color: #007bff; /* Add a hover effect to the image border */
 }
 
-.message-final p a:hover {
-    text-decoration: underline;
+.selection {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 10px;
+}
+
+.selection label {
+    margin: 0 5px;
+    font-size: 16px;
+    color: #333;
+    cursor: pointer;
+}
+
+.selection input[type="radio"] {
+    margin-right: 5px;
+}
+
+.selection input[type="radio"]:checked + label {
+    color: #007bff;
+    font-weight: bold;
+}
+
+.selection label:hover {
+    color: #007bff;
+    font-weight: bold;
 }
