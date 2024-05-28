@@ -27,10 +27,10 @@ safety_settings = [
 
 # Generation configuration for LLM
 generation_config = {
-    "temperature": 1.0,
+    "temperature": 0.4,
     "top_p": 0.9,
     "top_k": 50,
-    "max_output_tokens": 1024,
+    "max_output_tokens": 8024,
 }
 
 # Initialize LLM with generation configuration and safety settings
@@ -61,9 +61,7 @@ template = (
     "For Product related, use the following response format for product-related queries:\n"
     "Response Format: Bullet points with key-value pairs and product name as Title.\n"
     '''*Sample Response Format: 
-        - Title: The Institutes
-        - Author: CALVIN JOHN
-        - Category: Religious Studies.\n'''
+        - Title: title of the product.\n'''
     "Use only the provided context, no external knowledge allowed. {query_str}\n\n"
 )
 llm_prompt = PromptTemplate(template)
@@ -74,7 +72,7 @@ index = VectorStoreIndex.from_documents(documents)
 
 # Create query and chat engines
 #query_engine = index.as_query_engine(text_qa_template=llm_prompt, similarity_top_k=15)
-chat_engine = index.as_chat_engine(text_qa_template=llm_prompt, chat_mode="condense_question",verbose=True)
+chat_engine = index.as_chat_engine(text_qa_template=llm_prompt, chat_mode="condense_question",verbose=True,max_output_tokens=8024)
 
 @app.route('/')
 def index():
@@ -83,21 +81,21 @@ def index():
 @app.route('/get_bot_response', methods=['POST'])
 def get_bot_response():
     user_query = request.json.get('query')
-    mode = request.json.get('mode')
-    if not user_query or not mode:
-        return jsonify({'bot_response': 'Invalid input.'}), 400
+    mode =intent(user_query)
+    # if not user_query or not mode:
+    #     return jsonify({'bot_response': 'Invalid input.'}), 400
 
-    try:
-        product_info, chat_response = query_product_info(user_query)
-        formatted_chat_response = format_chat_response(chat_response)
-        if mode == 'recommendation':
-            bot_response = generate_bot_response(product_info, formatted_chat_response)
-        elif mode =='conversation':
-            bot_response = generate_bot_response(product_info=None, chat_response=formatted_chat_response)
-        return jsonify({'bot_response': bot_response})         
+    
+    product_info, chat_response = query_product_info(user_query)
+    formatted_chat_response = format_chat_response(chat_response)
+    if mode == 'recommendation':
+        bot_response = generate_bot_response(product_info, formatted_chat_response)
+    elif mode =='conversation':
+        bot_response = generate_bot_response(product_info=None, chat_response=formatted_chat_response)
+    return jsonify({'bot_response': bot_response})         
 
-    except Exception as e:
-        return jsonify({'bot_response': f'Error: {str(e)}'}), 500
+    # except Exception as e:
+    #     return jsonify({'bot_response': f'Error: {str(e)}'}), 500
 
 def create_shopify_session(shop_url, api_version, admin_api_key):
     try:
@@ -107,6 +105,38 @@ def create_shopify_session(shop_url, api_version, admin_api_key):
     except Exception as e:
         print("Error activating Shopify session:", e)
         return None
+
+def intent(user_query):
+    intent_prompt=f'''You are an AI designed to identify the intent behind user queries. Your task is to determine whether the user is looking for a conversation or a recommendation. If the user is engaging in a discussion, seeking opinions, sharing information, asking about a product, or inquiring about specifications or details of products, classify it as "conversation." If the user is asking for advice, suggestions, or specific information not related to product details, classify it as "recommendation." Respond with one word only: either "conversation" or "recommendation."
+
+Examples:
+
+User: "What do you think about the latest Marvel movie?"
+AI: conversation
+
+User: "Can you suggest a good restaurant in New York?"
+AI: recommendation
+
+User: "How have you been?"
+AI: conversation
+
+User: "What's the best way to learn Python programming?"
+AI: recommendation
+
+User: "Tell me about this product."
+AI: conversation
+
+User: "What are the specifications of this product?"
+AI: conversation
+
+Now, analyze the following user query and respond appropriately:
+
+User: "{user_query}"
+'''
+
+    resp=llm.complete(intent_prompt)
+    return resp.text
+
 
 def deactivate_shopify_session():
     try:
@@ -157,6 +187,9 @@ def query_product_info(prompt):
     shop_url = 'https://boatai.myshopify.com/'
     admin_api_key = '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'
     api_version = "2023-10"
+    # shop_url = 'https://shopingai.myshopify.com/'
+    # admin_api_key = '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'
+    # api_version = "2023-10"
 
     session = create_shopify_session(shop_url, api_version, admin_api_key)
     if not session:
