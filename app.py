@@ -13,7 +13,7 @@ import bleach
 from bs4 import BeautifulSoup
 app = Flask(__name__)
 
-os.environ['GOOGLE_API_KEY'] = "AIzaSyD8MuvEtPT6C7SwRjMxDJK8wEhfAj6zTk0"
+os.environ['GOOGLE_API_KEY'] = "AIzaSyD0yxW9VEXUBW_YBJb96eP6yQ_-sum1F9U"
 # Set environment variable for Google API key
 os.environ['GOOGLE_API_KEY'] = os.getenv('GOOGLE_API_KEY')
 
@@ -27,7 +27,7 @@ safety_settings = [
 
 # Generation configuration for LLM
 generation_config = {
-    "temperature": 0.4,
+    "temperature": 0.2,
     "top_p": 0.9,
     "top_k": 50,
     "max_output_tokens": 8024,
@@ -54,14 +54,12 @@ template = (
     "---------------------\n"
     "{context_str}"
     "\n---------------------\n"
-    "*You are a conversational AI.*\n"
-    "\n---------------------\n"
-    "You are required to respond for 2 types of user input.\n"
-    "1. General 2. Product related"
-    "For Product related, use the following response format for product-related queries:\n"
+    "You are a conversational AI.\n"
+    "If the user greets with 'Hi', 'Hello', 'Hey', or similar, respond with a greeting and ask how you can assist them.\n"
+    "Otherwise, use the following response format for product-related queries:\n"
     "Response Format: Bullet points with key-value pairs and product name as Title.\n"
-    '''*Sample Response Format: 
-        - Title: title of the product.\n'''
+    '''*Sample Response Format:
+        - Title: Title of products.\n'''
     "Use only the provided context, no external knowledge allowed. {query_str}\n\n"
 )
 llm_prompt = PromptTemplate(template)
@@ -185,7 +183,7 @@ def find_product_images(shop_url, title):
 
 def query_product_info(prompt):
     shop_url = 'https://boatai.myshopify.com/'
-    admin_api_key = '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'
+    admin_api_key = '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'
     api_version = "2023-10"
     # shop_url = 'https://shopingai.myshopify.com/'
     # admin_api_key = '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'
