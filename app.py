@@ -155,7 +155,7 @@ def find_product_images(shop_url, title):
 
 def query_product_info(prompt):
     shop_url = 'https://boatai.myshopify.com/'
-    admin_api_key = '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'
+   
     api_version = "2023-10"
 
     session = create_shopify_session(shop_url, api_version, admin_api_key)
